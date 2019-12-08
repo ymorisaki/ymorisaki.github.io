@@ -11588,28 +11588,40 @@ module.exports = function (module) {
 /*!****************************!*\
   !*** ./src/js/carousel.js ***!
   \****************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-(function () {
-  'use strict';
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return setCarousel; });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var FOCUSABLE = 'a, area, input, button, select, option, textarea, output, summary, video, audio, object, embed, iframe';
-  var TRANSITIONEND = 'transitionend';
-  var UA = navigator.userAgent.toLowerCase();
-  /**
-   * カルーセル機能
-   * @constructor
-   * @param {object} root カルーセル本体
-   * @param {object} options インスタンス生成時に設定したオプション
-   */
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-  var Carousel = function Carousel(root, options) {
-    if (!(this instanceof Carousel)) {
-      return new Carousel(root, options);
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var FOCUSABLE = 'a, area, input, button, select, option, textarea, output, summary, video, audio, object, embed, iframe';
+var TRANSITIONEND = 'transitionend';
+var UA = navigator.userAgent.toLowerCase();
+/**
+ * 汎用カルーセル
+ * @constructor
+ */
+
+var Carousel =
+/*#__PURE__*/
+function () {
+  function Carousel(root, options) {
+    var _this = this;
+
+    _classCallCheck(this, Carousel);
+
+    this.root = root;
+
+    if (!this.root) {
+      return;
     }
 
-    var self = this;
     var o = {
       wrap: 'carousel__wrap',
       slideWrap: 'carousel__slide-wrap',
@@ -11625,52 +11637,86 @@ module.exports = function (module) {
       autoPlayHookClass: 'carousel__play-hook',
       animationType: 'slide',
       easing: 'ease',
-      autoPlay: false,
-      onStopPlay: false,
+      autoPlay: true,
+      onStopPlay: true,
       swipe: true,
       dots: true,
       spColumn: null,
       colMargin: null,
       column: 1,
       breakPoint: 767,
-      playInterval: 5000,
+      playInterval: 4000,
       resizeThreshold: 200,
       duration: 500
     };
-    Object.assign(o, options); // DOMオブジェクト
+    Object.assign(o, options);
+    /**
+     * DOMオブジェクト
+     * @type {object} slideWrap カルーセル全体のラッパー
+     * @type {object} slideInner カルーセルアイテムラッパーのラッパー スライドをする対象
+     * @type {object} wrap カルーセルアイテムのラッパー 無限ループ時に複製する対象
+     * @type {object} item カルーセルアイテム
+     * @type {object} indicator インジケーター
+     * @type {object} cloneBeforeWrap オリジナルの前方に複製するカルーセル
+     * @type {object} cloneAfterWrap オリジナルの後方に複製するカルーセル
+     * @type {object} cloneBeforeItem cloneBeforeWrap内のカルーセルアイテム
+     * @type {object} cloneAfterItem cloneAfterWrap内のカルーセルアイテム
+     * @type {number} itemLength クローンを含まないカルーセルアイテムの総数
+     * @type {array} focusableItem カルーセルアイテム内のフォーカサブルな要素の配列
+     */
 
-    this.root = root;
-    this.slideWrap = root.querySelector('.' + o.slideWrap);
-    this.slideInner = root.querySelector('.' + o.slideInner);
-    this.wrap = root.querySelector('.' + o.wrap);
-    this.item = root.querySelectorAll('.' + o.item);
+    this.slideWrap = root.querySelector(".".concat(o.slideWrap));
+    this.slideInner = root.querySelector(".".concat(o.slideInner));
+    this.wrap = root.querySelector(".".concat(o.wrap));
+    this.item = root.querySelectorAll(".".concat(o.item));
+    this.indicator = null;
+    this.cloneBeforeWrap = null;
+    this.cloneAfterWrap = null;
+    this.cloneBeforeItem = null;
+    this.cloneAfterItem = null;
     this.itemLength = this.item.length;
     this.focusableItem = [];
-    this.item.forEach(function (el) {
-      var i = 0;
-      var targets = el.querySelectorAll(FOCUSABLE);
+    this.item.forEach(function (element) {
+      var targets = element.querySelectorAll(FOCUSABLE);
 
-      for (; i < targets.length; i++) {
-        self.focusableItem.push(targets[i]);
+      for (var i = 0; i < targets.length; i++) {
+        _this.focusableItem.push(targets[i]);
       }
-    }); // DOMの生成
+    });
+    /**
+     * DOMオブジェクトの生成
+     * @type {object} nextButton 次へ遷移するボタン
+     * @type {object} prevButton 前へ遷移するボタン
+     * @type {object} playerWrap インジケーターと再生ボタンのラップ
+     * @type {object} indicatorWrap インジケーターのラップ
+     * @type {object} playButton 再生ボタン
+     * @type {object} pauseButton 停止ボタン
+     */
 
     this.nextButton = document.createElement('button');
     this.prevButton = document.createElement('button');
     this.playerWrap = document.createElement('div');
     this.indicatorWrap = document.createElement('ul');
     this.playButton = document.createElement('button');
-    this.pauseButton = document.createElement('button'); // class名
-
-    this.nextClass = o.nextClass;
-    this.prevClass = o.prevClass;
-    this.playClass = o.playClass;
-    this.pauseClass = o.pauseClass;
-    this.autoPlayHookClass = o.autoPlayHookClass;
-    this.indicatorWrapClass = o.indicatorWrapClass;
-    this.playerWrapClass = o.playerWrapClass;
-    this.itemClass = o.item;
-    this.indicatorClass = o.indicatorClass; // オプションの設定
+    this.pauseButton = document.createElement('button');
+    /**
+     * オプションの設定
+     * @type {boolean} dots インジケーターの表示
+     * @type {number} column カラム表示数
+     * @type {number} colMargin カラム同士の余白
+     * @type {number} defautMargin カラム数変更の際にカラムの余白をキャッシュする
+     * @type {number} defaultColumn カラム数変更の際にカラム数をキャッシュする
+     * @type {number} spColumn SP時のカラム数
+     * @type {number} playInterval 自動再生の切替秒数
+     * @type {boolean} autoPlay 自動再生の設定
+     * @type {boolean} onStopPlay カルーセルにマウスオンした際に自動再生を停止する
+     * @type {string} easing イージングの種類
+     * @type {boolean} swipe スワイプの設定
+     * @type {number} breakPoint ブレイクポイント
+     * @type {string} animationType スライドアニメーションの種類[slide, fade]
+     * @type {number} resizeThreshold リサイズの間引き間隔
+     * @type {number} duration アニメーションのスピード
+     */
 
     this.dots = o.dots;
     this.column = o.column;
@@ -11686,20 +11732,25 @@ module.exports = function (module) {
     this.breakPoint = o.breakPoint;
     this.animationType = o.animationType;
     this.resizeThreshold = o.resizeThreshold;
-    this.duration = o.duration; // 動的に代入される設定
+    this.duration = o.duration; // class名
 
-    this.indicator = null;
-    this.cloneBeforeWrap = null;
-    this.cloneAfterWrap = null;
-    this.cloneBeforeItem = null;
-    this.cloneAfterItem = null;
-    this.autoPlayId = null;
-    this.resizeBeforeWidth = null;
-    this.resizeAfterWidth = null;
+    this.nextClass = o.nextClass;
+    this.prevClass = o.prevClass;
+    this.playClass = o.playClass;
+    this.pauseClass = o.pauseClass;
+    this.autoPlayHookClass = o.autoPlayHookClass;
+    this.indicatorWrapClass = o.indicatorWrapClass;
+    this.playerWrapClass = o.playerWrapClass;
+    this.itemClass = o.item;
+    this.indicatorClass = o.indicatorClass; // 動的に代入される値
+
+    this.autoPlayId = 0;
+    this.resizeBeforeWidth = 0;
+    this.resizeAfterWidth = 0;
+    this.itemWidth = 0;
     this.isAutoPlay = false;
     this.isSliding = false;
-    this.isOnStop = null;
-    this.itemWidth = null; // カルーセルの初期配置設定
+    this.isOnStop = false; // カルーセルの初期配置設定
 
     this.nowPosition = 0;
     this.isCurrentNum = 1;
@@ -11709,9 +11760,9 @@ module.exports = function (module) {
     } // 機能実行
 
 
-    this.addElementAndClasses();
+    this.setCreateElement();
     this.setInitItems();
-    this.cloneSlider();
+    this.setCloneSlider();
     this.setController();
     this.changeTabIndex();
     this.clickEvent();
@@ -11728,24 +11779,24 @@ module.exports = function (module) {
     }
 
     this.forcedResize();
-  };
+  }
+  /*
+   * DOM要素の追加生成と属性の付与
+   */
 
-  Carousel.prototype = {
-    /**
-     * DOM要素の追加生成と属性の付与
-     * @returns {void}
-     */
-    addElementAndClasses: function addElementAndClasses() {
-      var addSpan = function addSpan(el, cl, txt) {
+
+  _createClass(Carousel, [{
+    key: "setCreateElement",
+    value: function setCreateElement() {
+      var addSpan = function addSpan(element, klass, txt) {
         var span = document.createElement('span');
-        var i = 0;
 
-        for (; i < cl.length; i++) {
-          el.classList.add(cl[i]);
+        for (var i = 0; i < klass.length; i++) {
+          element.classList.add(klass[i]);
         }
 
-        el.setAttribute('type', 'button');
-        el.appendChild(span);
+        element.setAttribute('type', 'button');
+        element.appendChild(span);
         span.textContent = txt;
       };
 
@@ -11758,50 +11809,51 @@ module.exports = function (module) {
         addSpan(this.playButton, [this.playClass, this.autoPlayHookClass], '自動再生を開始');
         addSpan(this.pauseButton, [this.pauseClass, this.autoPlayHookClass], '自動再生を停止');
       }
-    },
-
-    /**
+    }
+    /*
      * カルーセルアイテムの初期配置
-     * @returns {void}
      */
-    setInitItems: function setInitItems() {
-      var self = this;
-      self.wrap.style.position = 'absolute';
-      self.wrap.style.top = 0;
-      self.item.forEach(function (el) {
-        el.style.position = 'absolute';
+
+  }, {
+    key: "setInitItems",
+    value: function setInitItems() {
+      var _this2 = this;
+
+      this.wrap.style.position = 'absolute';
+      this.wrap.style.top = 0;
+      this.item.forEach(function (element) {
+        element.style.position = 'absolute';
       });
 
-      if (self.itemLength === 1) {
-        self.column = 1;
+      if (this.itemLength === 1) {
+        this.column = 1;
       }
 
-      if (self.animationType === 'slide') {
-        self.slideInner.style.transitionDuration = self.duration / 1000 + 's';
-        self.slideInner.style.transitionTimingFunction = self.easing;
+      if (this.animationType === 'slide') {
+        this.slideInner.style.transitionDuration = "".concat(this.duration / 1000, "s");
+        this.slideInner.style.transitionTimingFunction = this.easing;
+        this.slideInner.style.transitionProperty = 'transform, left';
       }
 
-      if (self.colMargin && self.column > 1) {
-        self.item.forEach(function (el) {
-          el.style.marginRight = self.colMargin + 'px';
+      if (this.colMargin && this.column > 1) {
+        this.item.forEach(function (element) {
+          element.style.marginRight = "".concat(_this2.colMargin, "px");
         });
       }
 
-      if (self.animationType === 'fade') {
-        var _self = this;
-
+      if (this.animationType === 'fade') {
         var setStyles = function setStyles() {
           return new Promise(function (resolve) {
-            _self.item.forEach(function (el, num) {
-              var styles = el.style;
+            _this2.item.forEach(function (element, num) {
+              var styles = element.style;
               styles.top = 0;
               styles.left = 0;
               styles.opacity = 0;
               styles.transitionDuration = '0s';
-              styles.transitionTimingFunction = _self.easing;
+              styles.transitionTimingFunction = _this2.easing;
 
               if (num === 0) {
-                el.style.opacity = 1;
+                element.style.opacity = 1;
               }
             });
 
@@ -11811,19 +11863,20 @@ module.exports = function (module) {
 
         setStyles().then(function () {
           setTimeout(function () {
-            _self.item.forEach(function (el) {
-              el.style.transitionDuration = _self.duration / 1000 + 's';
+            _this2.item.forEach(function (element) {
+              element.style.transitionDuration = "".concat(_this2.duration / 1000, "s");
             });
           }, 10);
         });
       }
-    },
-
-    /**
+    }
+    /*
      * 無限ループ用のカルーセルの複製
-     * @returns {void}
      */
-    cloneSlider: function cloneSlider() {
+
+  }, {
+    key: "setCloneSlider",
+    value: function setCloneSlider() {
       if (this.animationType === 'fade') {
         return;
       }
@@ -11838,33 +11891,33 @@ module.exports = function (module) {
       this.slideInner.insertBefore(cloneElement2, this.slideInner.firstChild);
       this.cloneBeforeWrap = this.slideInner.querySelector('.is-clone-before');
       this.cloneAfterWrap = this.slideInner.querySelector('.is-clone-after');
-      this.cloneBeforeItem = this.cloneBeforeWrap.querySelectorAll('.' + this.itemClass);
-      this.cloneAfterItem = this.cloneAfterWrap.querySelectorAll('.' + this.itemClass);
-      this.cloneBeforeItem.forEach(function (el) {
-        var focusable = el.querySelectorAll(FOCUSABLE);
-        el.setAttribute('aria-hidden', true);
-        focusable.forEach(function (elem) {
-          elem.tabIndex = -1;
+      this.cloneBeforeItem = this.cloneBeforeWrap.querySelectorAll(".".concat(this.itemClass));
+      this.cloneAfterItem = this.cloneAfterWrap.querySelectorAll(".".concat(this.itemClass));
+      this.cloneBeforeItem.forEach(function (element) {
+        var focusable = element.querySelectorAll(FOCUSABLE);
+        element.setAttribute('aria-hidden', true);
+        focusable.forEach(function (element) {
+          element.tabIndex = -1;
         });
       });
-      this.cloneAfterItem.forEach(function (el) {
-        var focusable = el.querySelectorAll(FOCUSABLE);
-        el.setAttribute('aria-hidden', true);
-        focusable.forEach(function (elem) {
-          elem.tabIndex = -1;
+      this.cloneAfterItem.forEach(function (element) {
+        var focusable = element.querySelectorAll(FOCUSABLE);
+        element.setAttribute('aria-hidden', true);
+        focusable.forEach(function (element) {
+          element.tabIndex = -1;
         });
       });
-    },
-
-    /**
+    }
+    /*
      * スライド操作に必要な要素の配置
-     * @returns {void}
      */
-    setController: function setController() {
-      var fragment = document.createDocumentFragment();
-      var i = 0; // インジケーターの生成
 
-      for (; i < this.itemLength; i++) {
+  }, {
+    key: "setController",
+    value: function setController() {
+      var fragment = document.createDocumentFragment(); // インジケーターの生成
+
+      for (var i = 0; i < this.itemLength; i++) {
         var li = document.createElement('li');
         var button = document.createElement('button');
         var span = document.createElement('span');
@@ -11872,7 +11925,7 @@ module.exports = function (module) {
         button.setAttribute('type', 'button');
         span.classList.add('indicator-index');
         span.setAttribute('data-current', i + 1);
-        span.textContent = i + 1 + '番目のスライドを表示';
+        span.textContent = "".concat(i + 1, "\u756A\u76EE\u306E\u30B9\u30E9\u30A4\u30C9\u3092\u8868\u793A");
         button.appendChild(span);
         li.appendChild(button);
         fragment.appendChild(li);
@@ -11885,102 +11938,102 @@ module.exports = function (module) {
       this.indicatorWrap.appendChild(fragment);
       this.playerWrap.appendChild(this.indicatorWrap); // class名の付与
 
-      this.indicator = this.indicatorWrap.querySelectorAll('.' + this.indicatorClass);
+      this.indicator = this.indicatorWrap.querySelectorAll(".".concat(this.indicatorClass));
       this.indicator[0].classList.add('is-active');
 
       if (this.autoPlay) {
         this.playerWrap.appendChild(this.pauseButton);
         this.isAutoPlay = true;
       }
-    },
-
-    /**
+    }
+    /*
      * カルーセルアイテムのカラム割と横軸配置
      * 画面リサイズの度に処理を行う
-     * @returns {void}
      */
-    setColItems: function setColItems() {
-      var self = this;
-      var i = 0;
-      var maxLength = self.itemLength;
+
+  }, {
+    key: "setColItems",
+    value: function setColItems() {
+      var _this3 = this;
+
+      var maxLength = this.itemLength;
       var styles = null;
 
-      if (self.isSliding) {
+      if (this.isSliding) {
         return;
       }
 
-      if (self.animationType === 'slide') {
+      if (this.animationType === 'slide') {
         // カラムオプション変更とリサイズによるアイテム幅の計算
-        if (self.column === 1) {
-          self.item.forEach(function (el) {
-            el.style.width = '100%';
+        if (this.column === 1) {
+          this.item.forEach(function (element) {
+            element.style.width = '100%';
           });
-          self.cloneBeforeItem.forEach(function (el) {
-            el.style.width = '100%';
+          this.cloneBeforeItem.forEach(function (element) {
+            element.style.width = '100%';
           });
-          self.cloneAfterItem.forEach(function (el) {
-            el.style.width = '100%';
+          this.cloneAfterItem.forEach(function (element) {
+            element.style.width = '100%';
           });
-          styles = window.getComputedStyle(self.item[0]);
-          self.itemWidth = self.item[0].getBoundingClientRect().width;
+          styles = window.getComputedStyle(this.item[0]);
+          this.itemWidth = this.item[0].getBoundingClientRect().width;
         } else {
-          self.item.forEach(function (el) {
-            el.style.width = 'calc(' + 100 / self.column + '% - ' + self.colMargin / self.column * (self.column - 1) + 'px)';
+          this.item.forEach(function (element) {
+            element.style.width = "calc(".concat(100 / _this3.column, "% - ").concat(_this3.colMargin / _this3.column * (_this3.column - 1), "px)");
           });
-          self.cloneBeforeItem.forEach(function (el) {
-            el.style.width = 'calc(' + 100 / self.column + '% - ' + self.colMargin / self.column * (self.column - 1) + 'px)';
+          this.cloneBeforeItem.forEach(function (element) {
+            element.style.width = "calc(".concat(100 / _this3.column, "% - ").concat(_this3.colMargin / _this3.column * (_this3.column - 1), "px)");
           });
-          self.cloneAfterItem.forEach(function (el) {
-            el.style.width = 'calc(' + 100 / self.column + '% - ' + self.colMargin / self.column * (self.column - 1) + 'px)';
+          this.cloneAfterItem.forEach(function (element) {
+            element.style.width = "calc(".concat(100 / _this3.column, "% - ").concat(_this3.colMargin / _this3.column * (_this3.column - 1), "px)");
           });
-          styles = window.getComputedStyle(self.item[0]);
-          self.itemWidth = self.item[0].getBoundingClientRect().width;
-          self.colMargin = parseInt(styles.marginRight, 10);
-          self.itemWidth += self.colMargin;
+          styles = window.getComputedStyle(this.item[0]);
+          this.itemWidth = this.item[0].getBoundingClientRect().width;
+          this.colMargin = parseInt(styles.marginRight, 10);
+          this.itemWidth += this.colMargin;
         }
       } // クローンしたパネルの配置
 
 
-      for (; i < maxLength; i++) {
-        self.item[i].style.left = self.itemWidth * i + 'px';
+      for (var i = 0; i < maxLength; i++) {
+        this.item[i].style.transform = "translateX(".concat(this.itemWidth * i, "px)");
 
-        if (self.animationType === 'slide') {
-          self.cloneBeforeItem[i].style.left = self.itemWidth * i + 'px';
-          self.cloneAfterItem[i].style.left = self.itemWidth * i + 'px';
+        if (this.animationType === 'slide') {
+          this.cloneBeforeItem[i].style.transform = "translateX(".concat(this.itemWidth * i, "px)");
+          this.cloneAfterItem[i].style.transform = "translateX(".concat(this.itemWidth * i, "px)");
         }
       }
 
-      if (self.animationType === 'slide') {
+      if (this.animationType === 'slide') {
         // クローンしたパネルのラッパーを左右に配置
-        self.cloneBeforeWrap.style.left = '-' + self.itemWidth * self.itemLength + 'px';
-        self.cloneAfterWrap.style.left = self.itemWidth * self.itemLength + 'px';
-      } // スライド全体の再配置（動作未確認注意）
+        this.cloneBeforeWrap.style.transform = "translateX(-".concat(this.itemWidth * this.itemLength, "px)");
+        this.cloneAfterWrap.style.transform = "translateX(".concat(this.itemWidth * this.itemLength, "px)");
+      } // スライド全体の再配置
 
 
-      if (self.isCurrentNum !== 1) {
-        var _self = this;
-
+      if (this.isCurrentNum !== 1) {
         var setSildePosition = function setSildePosition() {
           return new Promise(function (resolve) {
-            _self.slideInner.style.left = '-' + _self.itemWidth * (_self.isCurrentNum - 1) + 'px';
-            _self.slideInner.style.transitionDuration = '0s';
-            styles = window.getComputedStyle(_self.slideInner);
+            _this3.slideInner.style.transform = "translateX(-".concat(_this3.itemWidth * (_this3.isCurrentNum - 1), "px");
+            _this3.slideInner.style.transitionDuration = '0s';
+            styles = window.getComputedStyle(_this3.slideInner);
             resolve();
           });
         };
 
         setSildePosition().then(function () {
-          _self.slideInner.style.transitionDuration = _self.duration / 1000 + 's';
-          _self.nowPosition = parseInt(styles.left.match(/(\d+)/)[0], 10);
+          _this3.slideInner.style.transitionDuration = "".concat(_this3.duration / 1000, "s");
+          _this3.nowPosition = parseInt(styles.transform.replace('matrix(1, 0, 0, 1, ', '').replace(', 0)', '').replace('-', ''), 10);
         });
       }
-    },
-
-    /**
+    }
+    /*
      * 一つ先にスライドする処理
-     * @return {void}
      */
-    nextSlide: function nextSlide() {
+
+  }, {
+    key: "nextSlide",
+    value: function nextSlide() {
       var styles = null;
       var elWidth = null;
 
@@ -12003,7 +12056,8 @@ module.exports = function (module) {
           this.itemWidth = elWidth + this.colMargin;
         }
 
-        this.slideInner.style.left = '-' + (this.itemWidth + this.nowPosition) + 'px'; // 無限ループ時にインジケーターを最初に戻す
+        console.log(this.itemWidth, this.nowPosition);
+        this.slideInner.style.transform = "translateX(-".concat(this.itemWidth + this.nowPosition, "px)"); // 無限ループ時にインジケーターを最初に戻す
 
         if (this.isCurrentNum === this.itemLength + 1) {
           this.indicatorUpdate(0);
@@ -12029,35 +12083,37 @@ module.exports = function (module) {
 
 
       this.indicatorUpdate(this.isCurrentNum - 1);
-    },
-
-    /**
+    }
+    /*
      * 一つ先にスライドする処理（無限ループ切り替え時）
-     * @return {void}
      */
-    nextInfiniteLoop: function nextInfiniteLoop() {
-      var self = this;
 
-      if (self.animationType === 'slide') {
-        self.slideInner.style.transitionDuration = '0s';
+  }, {
+    key: "nextInfiniteLoop",
+    value: function nextInfiniteLoop() {
+      var _this4 = this;
+
+      if (this.animationType === 'slide') {
+        this.slideInner.style.transitionDuration = '0s';
         setTimeout(function () {
-          self.slideInner.style.left = 0;
+          _this4.slideInner.style.transform = 'translateX(0)';
         }, 20); // 現在のカレントとleft位置を初期化
 
-        self.isCurrentNum = 1;
-        self.nowPosition = 0;
+        this.isCurrentNum = 1;
+        this.nowPosition = 0;
         setTimeout(function () {
-          self.slideInner.style.transitionDuration = self.duration / 1000 + 's';
-          self.isSliding = false;
+          _this4.slideInner.style.transitionDuration = "".concat(_this4.duration / 1000, "s");
+          _this4.isSliding = false;
         }, 40);
       }
-    },
-
-    /**
+    }
+    /*
      * 一つ前にスライドする処理
-     * @return {void}
      */
-    prevSlide: function prevSlide() {
+
+  }, {
+    key: "prevSlide",
+    value: function prevSlide() {
       var styles = null;
       var elWidth = null;
 
@@ -12081,11 +12137,11 @@ module.exports = function (module) {
         }
 
         if (this.isCurrentNum === 0) {
-          this.slideInner.style.left = this.nowPosition + this.itemWidth + 'px';
+          this.slideInner.style.transform = "translateX(".concat(this.nowPosition + this.itemWidth, "px)");
         } else if (this.isCurrentNum === 1) {
-          this.slideInner.style.left = 0;
+          this.slideInner.style.transform = 'translateX(0)';
         } else {
-          this.slideInner.style.left = '-' + (this.nowPosition - this.itemWidth) + 'px';
+          this.slideInner.style.transform = "translateX(-".concat(this.nowPosition - this.itemWidth, "px)");
         }
       }
 
@@ -12106,50 +12162,54 @@ module.exports = function (module) {
       } else {
         this.indicatorUpdate(this.isCurrentNum - 1);
       }
-    },
-
-    /**
+    }
+    /*
      * 一つ前にスライドする処理（無限ループ切り替え時）
-     * @return {void}
      */
-    prevInfiniteLoop: function prevInfiniteLoop() {
-      var self = this;
+
+  }, {
+    key: "prevInfiniteLoop",
+    value: function prevInfiniteLoop() {
+      var _this5 = this;
+
       var targetPosition = 0;
-      var styles = window.getComputedStyle(self.item[0]);
-      var elWidth = self.item[0].getBoundingClientRect().width;
+      var styles = window.getComputedStyle(this.item[0]);
+      var elWidth = this.item[0].getBoundingClientRect().width;
 
       var initSlide = function initSlide() {
         return new Promise(function (resolve) {
-          if (self.column === 1) {
-            self.itemWidth = elWidth;
+          if (_this5.column === 1) {
+            _this5.itemWidth = elWidth;
           } else {
-            self.colMargin = parseInt(styles.marginRight, 10);
-            self.itemWidth = elWidth + self.colMargin;
+            _this5.colMargin = parseInt(styles.marginRight, 10);
+            _this5.itemWidth = elWidth + _this5.colMargin;
           }
 
-          targetPosition = self.itemWidth * (self.itemLength - (self.column - (self.column - 1)));
-          self.slideInner.style.transitionDuration = '0s';
-          self.slideInner.style.left = '-' + targetPosition + 'px'; // 現在のカレントとleft位置を初期化
+          targetPosition = _this5.itemWidth * (_this5.itemLength - (_this5.column - (_this5.column - 1)));
+          _this5.slideInner.style.transitionDuration = '0s';
+          _this5.slideInner.style.transform = "translateX(-".concat(targetPosition, "px)"); // 現在のカレントとleft位置を初期化
 
-          styles = window.getComputedStyle(self.slideInner);
-          self.isCurrentNum = self.itemLength;
-          self.nowPosition = parseInt(styles.left.match(/(\d+)/)[0], 10);
+          styles = window.getComputedStyle(_this5.slideInner);
+          _this5.isCurrentNum = _this5.itemLength;
+          _this5.nowPosition = parseInt(styles.transform.replace('matrix(1, 0, 0, 1, ', '').replace(', 0)', '').replace('-', ''), 10);
           resolve();
         });
       };
 
       initSlide().then(function () {
-        self.slideInner.style.transitionDuration = self.duration / 1000 + 's';
-        self.isSliding = false;
+        _this5.slideInner.style.transitionDuration = "".concat(_this5.duration / 1000, "s");
+        _this5.isSliding = false;
       });
-    },
-
+    }
     /**
      * 任意の箇所にスライドする処理
-     * @param {object} e - クリックされたインジケーター
+     * @param {EventObject} e - クリックされたインジケーター
      * @return {void}
      */
-    targetSlide: function targetSlide(e) {
+
+  }, {
+    key: "targetSlide",
+    value: function targetSlide(e) {
       var targetNum = e.target.querySelector('.indicator-index').getAttribute('data-current');
 
       if (this.isSliding) {
@@ -12162,202 +12222,213 @@ module.exports = function (module) {
       this.isCurrentNum = parseInt(targetNum, 10);
 
       if (this.animationType === 'slide') {
-        this.slideInner.style.left = '-' + this.itemWidth * (targetNum - 1) + 'px';
+        this.slideInner.style.transform = "translateX(-".concat(this.itemWidth * (targetNum - 1), "px)");
       }
 
       if (this.animationType === 'fade') {
-        this.item.forEach(function (el) {
-          el.style.opacity = 0;
+        this.item.forEach(function (element) {
+          element.style.opacity = 0;
         });
         this.item[this.isCurrentNum - 1].style.opacity = 1;
       }
-    },
-
-    /**
+    }
+    /*
      * スライド時のタブインデックス操作
-     * @return {void}
      */
-    changeTabIndex: function changeTabIndex() {
-      var self = this;
+
+  }, {
+    key: "changeTabIndex",
+    value: function changeTabIndex() {
+      var _this6 = this;
 
       var setTabIndex = function setTabIndex(target, addNum) {
-        var changeTarget = self.item[target].querySelectorAll(FOCUSABLE);
-        changeTarget.forEach(function (el) {
-          el.tabIndex = addNum;
+        var changeTarget = _this6.item[target].querySelectorAll(FOCUSABLE);
+
+        changeTarget.forEach(function (element) {
+          element.tabIndex = addNum;
         });
       };
 
       var setCloneTabIndex = function setCloneTabIndex(target, addNum) {
-        var changeTarget = self.cloneAfterItem[target].querySelectorAll(FOCUSABLE);
-        changeTarget.forEach(function (el) {
-          el.tabIndex = addNum;
+        var changeTarget = _this6.cloneAfterItem[target].querySelectorAll(FOCUSABLE);
+
+        changeTarget.forEach(function (element) {
+          element.tabIndex = addNum;
         });
       };
 
-      self.focusableItem.forEach(function (el) {
-        el.tabIndex = -1;
+      this.focusableItem.forEach(function (element) {
+        element.tabIndex = -1;
       });
 
-      if (self.animationType === 'slide') {
-        var afterFocusable = self.cloneAfterWrap.querySelectorAll(FOCUSABLE);
-        afterFocusable.forEach(function (el) {
-          el.tabIndex = -1;
+      if (this.animationType === 'slide') {
+        var afterFocusable = this.cloneAfterWrap.querySelectorAll(FOCUSABLE);
+        afterFocusable.forEach(function (element) {
+          element.tabIndex = -1;
         });
       }
 
-      switch (self.column) {
+      switch (this.column) {
         case 1:
-          if (self.isCurrentNum === self.itemLength + 1) {
+          if (this.isCurrentNum === this.itemLength + 1) {
             setTabIndex(0, 0);
             return;
           }
 
-          if (self.isCurrentNum === 0) {
-            setTabIndex(self.itemLength - 1, 0);
+          if (this.isCurrentNum === 0) {
+            setTabIndex(this.itemLength - 1, 0);
             return;
           }
 
-          setTabIndex(self.isCurrentNum - 1, 0);
+          setTabIndex(this.isCurrentNum - 1, 0);
           break;
 
         case 2:
           // 最初のアイテムにカレント時
-          if (self.isCurrentNum === 0) {
-            setTabIndex(self.itemLength - 1, 0);
+          if (this.isCurrentNum === 0) {
+            setTabIndex(this.itemLength - 1, 0);
             setCloneTabIndex(0, 0);
             return;
           } // 最後から二番目のアイテムにカレント時
 
 
-          if (self.isCurrentNum === self.itemLength) {
-            setTabIndex(self.isCurrentNum - 1, 0);
+          if (this.isCurrentNum === this.itemLength) {
+            setTabIndex(this.isCurrentNum - 1, 0);
             setCloneTabIndex(0, 0);
             return;
           } // 最後のアイテムにカレント時
 
 
-          if (self.isCurrentNum === self.itemLength + 1) {
+          if (this.isCurrentNum === this.itemLength + 1) {
             setTabIndex(0, 0);
             setTabIndex(1, 0);
             return;
           }
 
-          setTabIndex(self.isCurrentNum - 1, 0);
-          setTabIndex(self.isCurrentNum, 0);
+          setTabIndex(this.isCurrentNum - 1, 0);
+          setTabIndex(this.isCurrentNum, 0);
           break;
 
         case 3:
           // 最初のアイテムにカレント時
-          if (self.isCurrentNum === 0) {
-            setTabIndex(self.itemLength - 1, 0);
+          if (this.isCurrentNum === 0) {
+            setTabIndex(this.itemLength - 1, 0);
             setCloneTabIndex(0, 0);
             setCloneTabIndex(1, 0);
             return;
           } // 最後から三番目のアイテムにカレント時
 
 
-          if (self.isCurrentNum === self.itemLength - 1) {
-            setTabIndex(self.isCurrentNum, 0);
-            setTabIndex(self.isCurrentNum - 1, 0);
+          if (this.isCurrentNum === this.itemLength - 1) {
+            setTabIndex(this.isCurrentNum, 0);
+            setTabIndex(this.isCurrentNum - 1, 0);
             setCloneTabIndex(0, 0);
             return;
           } // 最後から二番目のアイテムにカレント時
 
 
-          if (self.isCurrentNum === self.itemLength) {
-            setTabIndex(self.isCurrentNum - 1, 0);
+          if (this.isCurrentNum === this.itemLength) {
+            setTabIndex(this.isCurrentNum - 1, 0);
             setCloneTabIndex(0, 0);
             setCloneTabIndex(1, 0);
             return;
           } // 最後のアイテムにカレント時
 
 
-          if (self.isCurrentNum === self.itemLength + 1) {
+          if (this.isCurrentNum === this.itemLength + 1) {
             setTabIndex(0, 0);
             setTabIndex(1, 0);
             setTabIndex(2, 0);
             return;
           }
 
-          setTabIndex(self.isCurrentNum - 1, 0);
-          setTabIndex(self.isCurrentNum, 0);
-          setTabIndex(self.isCurrentNum + 1, 0);
+          setTabIndex(this.isCurrentNum - 1, 0);
+          setTabIndex(this.isCurrentNum, 0);
+          setTabIndex(this.isCurrentNum + 1, 0);
           break;
 
         default:
           break;
       }
-    },
-
-    /**
-     * マウスクリック時の処理
-     * @return {void}
+    }
+    /*
+     * クリックイベント登録
      */
-    clickEvent: function clickEvent() {
-      var self = this;
-      self.nextButton.addEventListener('click', function () {
-        self.nextSlide();
-        self.changeTabIndex();
 
-        if (self.autoPlay && self.isAutoPlay) {
-          self.resetAutoPlayTime();
+  }, {
+    key: "clickEvent",
+    value: function clickEvent() {
+      var _this7 = this;
+
+      this.nextButton.addEventListener('click', function () {
+        _this7.nextSlide();
+
+        _this7.changeTabIndex();
+
+        if (_this7.autoPlay && _this7.isAutoPlay) {
+          _this7.resetAutoPlayTime();
         }
       });
-      self.prevButton.addEventListener('click', function () {
-        self.prevSlide();
-        self.focusableItem.forEach(function (el) {
-          el.tabIndex = -1;
+      this.prevButton.addEventListener('click', function () {
+        _this7.prevSlide();
+
+        _this7.focusableItem.forEach(function (element) {
+          element.tabIndex = -1;
         });
-        self.changeTabIndex();
 
-        if (self.autoPlay && self.isAutoPlay) {
-          self.resetAutoPlayTime();
+        _this7.changeTabIndex();
+
+        if (_this7.autoPlay && _this7.isAutoPlay) {
+          _this7.resetAutoPlayTime();
         }
       });
-      self.indicator.forEach(function (el) {
-        el.addEventListener('click', function (e) {
+      this.indicator.forEach(function (element) {
+        element.addEventListener('click', function (e) {
           if (e.target.classList.contains('is-active')) {
             return;
           }
 
-          self.targetSlide(e);
-          self.changeTabIndex();
+          _this7.targetSlide(e);
 
-          if (self.autoPlay && self.isAutoPlay) {
-            self.resetAutoPlayTime();
+          _this7.changeTabIndex();
+
+          if (_this7.autoPlay && _this7.isAutoPlay) {
+            _this7.resetAutoPlayTime();
           }
         });
       });
-      self.slideInner.addEventListener(TRANSITIONEND, function () {
-        self.transitionAfter();
+      this.slideInner.addEventListener(TRANSITIONEND, function () {
+        _this7.transitionHandler();
       });
-      self.item.forEach(function (el) {
-        el.addEventListener(TRANSITIONEND, function () {
-          self.isSliding = false;
+      this.item.forEach(function (element) {
+        element.addEventListener(TRANSITIONEND, function () {
+          _this7.isSliding = false;
         });
       });
-      self.pauseButton.addEventListener('click', function (e) {
-        if (e.target.classList.contains(self.pauseClass)) {
-          self.stopAutoPlay();
+      this.pauseButton.addEventListener('click', function (e) {
+        if (e.target.classList.contains(_this7.pauseClass)) {
+          _this7.stopAutoPlay();
         } else {
-          self.startAutoPlay();
+          _this7.startAutoPlay();
         }
 
-        self.changeAutoPlayIcon(e);
+        _this7.changeAutoPlayIcon(e);
       });
-    },
-
-    /**
-     * リサイズ時の処理
-     * @return {void}
+    }
+    /*
+     * リサイズイベント登録
      */
-    resizeEvent: function resizeEvent() {
-      var self = this;
+
+  }, {
+    key: "resizeEvent",
+    value: function resizeEvent() {
+      var _this8 = this;
+
       var timeoutId = 0;
       var windowWidth = 0;
       window.addEventListener('resize', function () {
-        if (self.animationType === 'slide') {
-          self.resetAutoPlayTime();
+        if (_this8.animationType === 'slide') {
+          _this8.resetAutoPlayTime();
         }
 
         if (timeoutId) {
@@ -12368,108 +12439,121 @@ module.exports = function (module) {
           timeoutId = 0;
           windowWidth = window.innerWidth;
 
-          if (self.spColumn) {
-            self.changeBreakPoint(windowWidth);
+          if (_this8.spColumn) {
+            _this8.changeBreakPoint(windowWidth);
           }
 
-          self.setColItems();
-          self.matchHeight();
-        }, self.resizeThreshold);
-      }, false);
-    },
+          _this8.setColItems();
 
-    /**
-     * マウスホバー時の処理
-     * @return {void}
+          _this8.matchHeight();
+        }, _this8.resizeThreshold);
+      }, false);
+    }
+    /*
+     * ホバーイベント登録
      */
-    hoverEvent: function hoverEvent() {
-      var self = this;
-      self.item.forEach(function (el) {
-        el.addEventListener('mouseenter', function () {
-          if (self.autoPlay && self.onStopPlay && self.isAutoPlay) {
-            self.stopAutoPlay();
-            self.isOnStop = true;
+
+  }, {
+    key: "hoverEvent",
+    value: function hoverEvent() {
+      var _this9 = this;
+
+      this.item.forEach(function (element) {
+        element.addEventListener('mouseenter', function () {
+          if (_this9.autoPlay && _this9.onStopPlay && _this9.isAutoPlay) {
+            _this9.stopAutoPlay();
+
+            _this9.isOnStop = true;
           }
         }, false);
-        el.addEventListener('mouseleave', function () {
-          if (self.autoPlay && self.onStopPlay && self.isOnStop) {
-            self.startAutoPlay();
-            self.isOnStop = false;
+        element.addEventListener('mouseleave', function () {
+          if (_this9.autoPlay && _this9.onStopPlay && _this9.isOnStop) {
+            _this9.startAutoPlay();
+
+            _this9.isOnStop = false;
           }
         }, false);
       });
-    },
-
-    /**
-     * キー操作時の処理
-     * @return {void}
+    }
+    /*
+     * キーボードイベント登録
      */
-    keyEvent: function keyEvent() {
-      var self = this;
+
+  }, {
+    key: "keyEvent",
+    value: function keyEvent() {
+      var _this10 = this;
 
       var tabEventCansel = function tabEventCansel(e) {
-        if (self.isSliding && self.animationType === 'slide' && e.key === 'Tab') {
+        if (_this10.isSliding && _this10.animationType === 'slide' && e.key === 'Tab') {
           e.preventDefault();
         }
       };
 
-      self.nextButton.addEventListener('keydown', tabEventCansel);
-      self.prevButton.addEventListener('keydown', tabEventCansel);
+      this.nextButton.addEventListener('keydown', tabEventCansel);
+      this.prevButton.addEventListener('keydown', tabEventCansel);
 
       if (UA.indexOf('edge') !== -1) {
-        self.item.forEach(function (el) {
-          el.addEventListener('keydown', tabEventCansel);
+        this.item.forEach(function (element) {
+          element.addEventListener('keydown', tabEventCansel);
         });
       }
 
       if (UA.indexOf('trident/7') !== -1) {
-        self.item.forEach(function (el) {
-          el.addEventListener('keydown', tabEventCansel);
+        this.item.forEach(function (element) {
+          element.addEventListener('keydown', tabEventCansel);
         });
       }
-    },
-
-    /**
-     * スワイプ時の処理
-     * @returns {void}
+    }
+    /*
+     * スワイプイベント登録
      */
-    swipeEvent: function swipeEvent() {
-      var self = this;
+
+  }, {
+    key: "swipeEvent",
+    value: function swipeEvent() {
+      var _this11 = this;
+
       var touchMargin = 30;
       var touchOnX = null;
       var touchOutX = null;
-      self.root.addEventListener('touchstart', function (e) {
+      this.root.addEventListener('touchstart', function (e) {
         touchOnX = e.changedTouches[0].pageX;
       }, {
         passive: true
       });
-      self.root.addEventListener('touchend', function (e) {
+      this.root.addEventListener('touchend', function (e) {
         touchOutX = e.changedTouches[0].pageX;
 
         if (touchOnX + touchMargin < touchOutX) {
-          self.prevSlide();
-          self.changeTabIndex();
-          self.resetAutoPlayTime();
+          _this11.prevSlide();
+
+          _this11.changeTabIndex();
+
+          _this11.resetAutoPlayTime();
         } else if (touchOutX + touchMargin < touchOnX) {
-          self.nextSlide();
-          self.changeTabIndex();
-          self.resetAutoPlayTime();
+          _this11.nextSlide();
+
+          _this11.changeTabIndex();
+
+          _this11.resetAutoPlayTime();
         }
       }, {
         passive: true
       });
-    },
-
-    /**
+    }
+    /*
      * トランジションアニメーション終了時の処理
-     * @return {void}
      */
-    transitionAfter: function transitionAfter() {
+
+  }, {
+    key: "transitionHandler",
+    value: function transitionHandler() {
       var styles = window.getComputedStyle(this.slideInner);
 
       if (this.animationType === 'slide') {
         this.resizeAfterWidth = window.innerWidth;
-        this.nowPosition = parseInt(styles.left.match(/(\d+)/)[0], 10);
+        this.nowPosition = parseInt(styles.transform.replace('matrix(1, 0, 0, 1, ', '').replace(', 0)', '').replace('-', ''), 10);
 
         if (this.resizeBeforeWidth !== this.resizeAfterWidth) {
           this.setColItems();
@@ -12488,23 +12572,26 @@ module.exports = function (module) {
 
         this.isSliding = false;
       }
-    },
-
+    }
     /**
      * 初回読み込み時にトリガーイベントの強制発生
-     * @returns {void}
      */
-    forcedResize: function forcedResize() {
+
+  }, {
+    key: "forcedResize",
+    value: function forcedResize() {
       var resize = new Event('resize');
       window.dispatchEvent(resize);
-    },
-
+    }
     /**
      * ブレイクポイントのカラム切替処理
      * @param {number} width - リサイズ時のウィンドウ幅
      * @return {void}
      */
-    changeBreakPoint: function changeBreakPoint(width) {
+
+  }, {
+    key: "changeBreakPoint",
+    value: function changeBreakPoint(width) {
       if (width < this.breakPoint) {
         this.column = this.spColumn;
 
@@ -12515,69 +12602,79 @@ module.exports = function (module) {
         this.column = this.defalutColumn;
         this.colMargin = this.defalutMargin;
       }
-    },
-
+    }
     /**
      * インジケーターのカレント同期
      * @param {number} currentTarget カレントをアクティブにしたい数値
      * @return {void}
      */
-    indicatorUpdate: function indicatorUpdate(currentTarget) {
-      this.indicator.forEach(function (el) {
-        el.classList.remove('is-active');
+
+  }, {
+    key: "indicatorUpdate",
+    value: function indicatorUpdate(currentTarget) {
+      this.indicator.forEach(function (element) {
+        element.classList.remove('is-active');
       });
       this.indicator[currentTarget].classList.add('is-active');
-    },
-
-    /**
+    }
+    /*
      * 自動再生開始機能
-     * @return {void}
      */
-    startAutoPlay: function startAutoPlay() {
-      var self = this;
-      self.isAutoPlay = true;
-      self.autoPlayId = setInterval(function () {
-        self.nextSlide();
-        self.changeTabIndex();
-      }, self.playInterval);
-    },
 
-    /**
+  }, {
+    key: "startAutoPlay",
+    value: function startAutoPlay() {
+      var _this12 = this;
+
+      this.isAutoPlay = true;
+      this.autoPlayId = setInterval(function () {
+        _this12.nextSlide();
+
+        _this12.changeTabIndex();
+      }, this.playInterval);
+    }
+    /*
      * 自動再生停止機能
-     * @return {void}
      */
-    stopAutoPlay: function stopAutoPlay() {
+
+  }, {
+    key: "stopAutoPlay",
+    value: function stopAutoPlay() {
       this.isAutoPlay = false;
       clearInterval(this.autoPlayId);
-    },
-
-    /**
+    }
+    /*
      * 自動再生タイミングリセット機能
-     * @return {void}
      */
-    resetAutoPlayTime: function resetAutoPlayTime() {
-      if (this.autoPlay && this.isAutoPlay) {
-        var self = this;
 
+  }, {
+    key: "resetAutoPlayTime",
+    value: function resetAutoPlayTime() {
+      var _this13 = this;
+
+      if (this.autoPlay && this.isAutoPlay) {
         var resetAutoPlay = function resetAutoPlay() {
           return new Promise(function (resolve) {
-            self.stopAutoPlay();
+            _this13.stopAutoPlay();
+
             resolve();
           });
         };
 
         resetAutoPlay().then(function () {
-          self.startAutoPlay();
+          _this13.startAutoPlay();
         });
       }
-    },
-
+    }
     /**
      * 自動再生アイコンの変更処理
-     * @param {object} e - 自動再生切替ボタン
+     * @param {EventObject} e - 自動再生切替ボタン
      * @return {void}
      */
-    changeAutoPlayIcon: function changeAutoPlayIcon(e) {
+
+  }, {
+    key: "changeAutoPlayIcon",
+    value: function changeAutoPlayIcon(e) {
       var target = e.currentTarget;
 
       if (target.classList.contains(this.pauseClass)) {
@@ -12589,79 +12686,71 @@ module.exports = function (module) {
         target.classList.add(this.pauseClass);
         target.querySelector('span').textContent = '自動再生を停止';
       }
-    },
-
-    /**
+    }
+    /*
      * 高さ揃え機能
-     * @return {void}
      */
-    matchHeight: function matchHeight() {
+
+  }, {
+    key: "matchHeight",
+    value: function matchHeight() {
       var maxLength = this.itemLength;
       var heightAry = [];
-      var i = 0;
       this.wrap.style.height = '';
-      this.item.forEach(function (el) {
-        el.style.height = '';
+      this.item.forEach(function (element) {
+        element.style.height = '';
       });
 
-      for (; i < maxLength; i++) {
+      for (var i = 0; i < maxLength; i++) {
         heightAry.push(this.item[i].offsetHeight);
       }
 
       heightAry.sort(function (a, b) {
         return b - a;
       });
-      this.slideInner.style.height = heightAry[0] + 'px';
-      this.item.forEach(function (el) {
-        el.style.height = heightAry[0] + 'px';
+      this.slideInner.style.height = "".concat(heightAry[0], "px");
+      this.item.forEach(function (element) {
+        element.style.height = "".concat(heightAry[0], "px");
       });
 
       if (this.animationType === 'slide') {
-        this.cloneBeforeWrap.style.height = heightAry[0] + 'px';
-        this.cloneBeforeItem.forEach(function (el) {
-          el.style.height = heightAry[0] + 'px';
+        this.cloneBeforeWrap.style.height = "".concat(heightAry[0], "px");
+        this.cloneBeforeItem.forEach(function (element) {
+          element.style.height = "".concat(heightAry[0], "px");
         });
-        this.cloneAfterWrap.style.height = heightAry[0] + 'px';
-        this.cloneAfterItem.forEach(function (el) {
-          el.style.height = heightAry[0] + 'px';
+        this.cloneAfterWrap.style.height = "".concat(heightAry[0], "px");
+        this.cloneAfterItem.forEach(function (element) {
+          element.style.height = "".concat(heightAry[0], "px");
         });
       }
     }
-  }; // インスタンス生成
+  }]);
 
-  document.querySelectorAll('.js-carousel-fade-01').forEach(function (el) {
-    Carousel(el, {
-      animationType: 'fade',
-      playInterval: 3000,
-      duration: 1500,
-      autoPlay: true
+  return Carousel;
+}();
+
+function setCarousel() {
+  document.querySelectorAll('.js-carousel').forEach(function (element) {
+    return new Carousel(element, {
+      animationType: 'fade'
     });
   });
-  document.querySelectorAll('.js-carousel-slide-01').forEach(function (el) {
-    Carousel(el, {
-      playInterval: 4000,
-      autoPlay: true
-    });
+  document.querySelectorAll('.js-carousel-slide').forEach(function (element) {
+    return new Carousel(element);
   });
-  document.querySelectorAll('.js-carousel-slide-02').forEach(function (el) {
-    Carousel(el, {
+  document.querySelectorAll('.js-carousel-slide-02').forEach(function (element) {
+    return new Carousel(element, {
       column: 2,
-      colMargin: 20,
-      spColumn: 1,
-      playInterval: 5000,
-      autoPlay: true
+      colMargin: 10
     });
   });
-  document.querySelectorAll('.js-carousel-slide-03').forEach(function (el) {
-    Carousel(el, {
+  document.querySelectorAll('.js-carousel-slide-03').forEach(function (element) {
+    return new Carousel(element, {
       column: 3,
-      colMargin: 10,
-      spColumn: 2,
-      playInterval: 4000,
-      autoPlay: true
+      colMargin: 10
     });
   });
-})();
+}
 
 /***/ }),
 
@@ -12704,13 +12793,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _scss_main_scss__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_scss_main_scss__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _init__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./init */ "./src/js/init.js");
 /* harmony import */ var _carousel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./carousel */ "./src/js/carousel.js");
-/* harmony import */ var _carousel__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_carousel__WEBPACK_IMPORTED_MODULE_3__);
 
 
 
 
 Object(_init__WEBPACK_IMPORTED_MODULE_2__["initFunction"])();
-Object(_carousel__WEBPACK_IMPORTED_MODULE_3__["setCarousel"])();
+Object(_carousel__WEBPACK_IMPORTED_MODULE_3__["default"])();
 
 /***/ }),
 
